@@ -72,12 +72,12 @@ int main(int argc, char **argv)
     print(v, SZ);
     print(v2, SZ);
 
-    auto start = high_resolution_clock::now();
-
     setup_openCL_device_context_queue_kernel((char *)"./vector_ops.cl", (char *)"square_magnitude");
 
     setup_kernel_memory();
     copy_kernel_args();
+    
+    auto start = high_resolution_clock::now();
 
     //ToDo: Add comment (what is the purpose of this function? What are its arguments? Check the documenation to find more https://www.khronos.org/registry/OpenCL/sdk/2.2/docs/man/html/clEnqueueNDRangeKernel.html)
     clEnqueueNDRangeKernel(queue, kernel, 1, NULL, global, NULL, 0, NULL, &event);
