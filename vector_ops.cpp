@@ -46,11 +46,11 @@ cl_device_id create_device();
 void setup_openCL_device_context_queue_kernel(char *filename, char *kernelname);
 // Creates a program object for a given context with a device.
 cl_program build_program(cl_context ctx, cl_device_id dev, const char *filename);
-// Sets up the buffer objects 
+// Sets up the buffer objects for the memory.
 void setup_kernel_memory();
-//ToDo: Add comment (what is the purpose of this function)
+// The arguments are first set for the kernel.
 void copy_kernel_args();
-//ToDo: Add comment (what is the purpose of this function)
+// Cleanup function, frees up the memory in the kernel and for the objects.
 void free_memory();
 
 void init(int *&A, int size);
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     init(v2, SZ);
     init(v3, SZ);
 
-    // To define the amount of data that needs sent. 
+    // To define the amount of data that needs sent/received. 
     size_t global[1] = {(size_t)SZ };
 
     //initial vector
@@ -80,10 +80,13 @@ int main(int argc, char **argv)
     auto start = high_resolution_clock::now();
 
     //ToDo: Add comment (what is the purpose of this function? What are its arguments? Check the documenation to find more https://www.khronos.org/registry/OpenCL/sdk/2.2/docs/man/html/clEnqueueNDRangeKernel.html)
+    // Enqueue a command on a kernel on a device, (the command queue, the kernel, the number of data dimensisons(Example 1D/2D array), the offset to start the data, global work size,  
+    // local work size that make up the workgroup, the event wait list)
     clEnqueueNDRangeKernel(queue, kernel, 1, NULL, global, NULL, 0, NULL, &event);
     clWaitForEvents(3, &event);
 
-    //ToDo: Add comment (what is the purpose of this function? What are its arguments?)
+    // Permits us to read from the buffer object to the host memory (the queue, the buffer object, is this a blocking operation?, data index offset, the size of the data, pointer to the data in host memory,
+    // event wait list, number of events in the wait list, event object)
     clEnqueueReadBuffer(queue, bufV, CL_TRUE, 0, SZ * sizeof(int), &v[0], 0, NULL, NULL);
     clEnqueueReadBuffer(queue, bufV2, CL_TRUE, 0, SZ * sizeof(int), &v2[0], 0, NULL, NULL);
     clEnqueueReadBuffer(queue, bufV3, CL_TRUE, 0, SZ * sizeof(int), &v3[0], 0, NULL, NULL);
@@ -161,7 +164,7 @@ void free_memory()
 
 void copy_kernel_args()
 {
-    //ToDo: Add comment (what is the purpose of clSetKernelArg function? What are its arguments?)
+    // Sets the kernel arguments for the kernel ( the kernel, the index of the arguement, the size of the arg value, pointer to the data set to the arg value)
     clSetKernelArg(kernel, 0, sizeof(int), (void *)&SZ);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufV);
     clSetKernelArg(kernel, 2, sizeof(bufV2), (void *)&bufV2);
@@ -177,8 +180,9 @@ void copy_kernel_args()
 
 void setup_kernel_memory()
 {
-    //ToDo: Add comment (what is the purpose of clCreateBuffer function? What are its arguments?) 
     //The second parameter of the clCreateBuffer is cl_mem_flags flags. Check the OpenCL documention to find out what is it's purpose and read the List of supported memory flag values 
+    // Creates a buffer object, which stores one-dimensional collection of elements.
+    // The arguments are the given context, flags, the size, a void* pointer, and an error return code.
     bufV = clCreateBuffer(context, CL_MEM_READ_WRITE, SZ * sizeof(int), NULL, NULL);
     bufV2 = clCreateBuffer(context, CL_MEM_READ_WRITE, SZ * sizeof(int), NULL, NULL);
     bufV3 = clCreateBuffer(context, CL_MEM_READ_WRITE, SZ * sizeof(int), NULL, NULL);
@@ -194,7 +198,7 @@ void setup_openCL_device_context_queue_kernel(char *filename, char *kernelname)
     device_id = create_device();
     cl_int err;
 
-    //ToDo: Add comment (what is the purpose of clCreateBuffer function?)
+    // Creates a buffer object in memory.
     context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &err);
     if (err < 0)
     {
@@ -204,7 +208,7 @@ void setup_openCL_device_context_queue_kernel(char *filename, char *kernelname)
 
     program = build_program(context, device_id, filename);
 
-    //ToDo: Add comment (what is the purpose of clCreateCommandQueueWithProperties function?)
+    // Creates a host or device command-queue for a specific device.
     queue = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
     if (err < 0)
     {
@@ -245,7 +249,9 @@ cl_program build_program(cl_context ctx, cl_device_id dev, const char *filename)
     fread(program_buffer, sizeof(char), program_size, program_handle);
     fclose(program_handle);
 
-    //ToDo: Add comment (what is the purpose of clCreateProgramWithSource function? What are its arguments?)
+    // Creates a program object for the context and loads the source code into this object. 
+    // (context, count num pointers, strings: an array of count pointers to null char strings in the source code, lengths: the number of chars in each string,
+    // error code returned if need be)
     program = clCreateProgramWithSource(ctx, 1,
                                         (const char **)&program_buffer, &program_size, &err);
     if (err < 0)
